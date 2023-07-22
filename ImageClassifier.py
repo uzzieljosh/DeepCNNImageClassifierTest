@@ -5,7 +5,7 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from tensorflow import keras
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -61,3 +61,44 @@ model.summary()
 logdir = os.path.join(os.getcwd(), 'logs')
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir = logdir)
 hist = model.fit(train, epochs=20, validation_data=val, callbacks=[tensorboard_callback])
+
+fig= plt.figure()
+plt.plot(hist.history['loss'], color='teal', label='loss')
+plt.plot(hist.history['val_loss'], color='orange', label='val_loss')
+fig.suptitle('Loss')
+plt.legend(loc="upper left")
+plt.show()
+
+# from keras.metrics import BinaryAccuracy, Precision, Recall
+
+# pre = Precision()
+# re = Recall()
+# acc = BinaryAccuracy()
+
+# for batch in test.as_numpy_iterator():
+#     X, y = batch
+#     y_pred = model.predict(X)
+#     pre.update_state(y, y_pred)
+#     re.update_state(y, y_pred)
+#     acc.update_state(y, y_pred)
+# print(f'Precision: {pre.result().numpy()}, Recall: {re.result().numpy()}, Accuracy: {acc.result().numpy()}')
+
+img = cv2.imread(os.path.join(data_dir, 'cattest.jpg'))
+resize = tf.image.resize(img, (256,256))
+accu = model.predict(np.expand_dims(resize/255, 0))
+print(accu)
+if(accu<0.5):
+    print('Cat')
+else:
+    print('Dog')
+
+img = cv2.imread(os.path.join(data_dir, 'dogtest.jpg'))
+resize = tf.image.resize(img, (256,256))
+accu = model.predict(np.expand_dims(resize/255, 0))
+print(accu)
+if(accu<0.5):
+    print('Cat')
+else:
+    print('Dog')
+
+model.save(os.path.join(os.getcwd(), 'dogcatclassifiermodel.h5'))
